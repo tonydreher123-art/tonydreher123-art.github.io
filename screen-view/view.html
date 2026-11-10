@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com">
+<meta name="referrer" content="no-referrer">
+<title>Screen-View: watch</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<h1>Screen-View &mdash; Phone</h1>
+<div id="status" class="status" role="status" aria-live="polite">Starting&hellip;</div>
+<div id="ask" class="hidden">
+  <p>Type the room code from the Chromebook:</p>
+  <input id="codein" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" aria-label="room code">
+  <br><button id="go">Watch</button>
+</div>
+<video id="v" autoplay playsinline muted></video>
+<button id="full" class="hidden">Full screen</button>
+</main>
+<script src="peerjs.min.js"></script>
+<script src="common.js"></script>
+<script src="viewer.js"></script>
+</body></html>
