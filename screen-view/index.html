@@ -1,22 +1,129 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com ws://127.0.0.1:* ws://localhost:*">
 <meta name="referrer" content="no-referrer">
-<title>Screen-View: share my screen</title><link rel="stylesheet" href="style.css"></head>
-<body><main>
-<h1>Screen-View &mdash; Chromebook</h1>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<title>Screen-View: share my screen (private test build)</title><link rel="stylesheet" href="style.css">
+<script src="a11y.js"></script></head>
+<body data-page="computer">
+<a class="skip" href="#main">Skip to the main buttons</a>
+<main id="main" tabindex="-1">
+<h1>Screen-View &mdash; Computer</h1>
+<section class="a11y-bar" aria-label="Display settings">
+  <button type="button" id="toggle-contrast" class="toggle" aria-pressed="false">High contrast</button>
+  <button type="button" id="toggle-bigtext" class="toggle" aria-pressed="false">Larger text</button>
+</section>
 <div id="status" class="status" role="status" aria-live="polite">Getting a room code&hellip;</div>
-<button id="share" disabled>Share my screen</button>
-<button id="stop" class="hidden">Stop</button>
-<p>Room code:</p>
-<div id="code" class="code" aria-label="room code">&hellip;</div>
+<div id="share-note" class="share-note hidden" role="alert"></div>
+<div id="ai-snap-notice" class="ai-notice hidden" role="status" aria-live="polite"></div>
+<button type="button" id="share" disabled>Share my screen</button>
+<button type="button" id="stop" class="hidden">Stop</button>
+<div id="watchers" class="status" role="status" aria-live="polite">Nobody is watching.</div>
+<h2 id="code-heading">Room code</h2>
+<div id="code" class="code" aria-hidden="true">&hellip;</div>
+<p id="code-spoken" class="sr-only">Room code: not ready yet</p>
 <p>On the phone, scan this square with the camera, or open the link below:</p>
 <div id="qr" aria-hidden="true"></div>
 <p id="link" class="small"></p>
-<p class="small">Video goes straight from this browser to the phone. Only pick a harmless tab. Nothing is shared until you choose it in Chrome's own box. Test page: do not share private material.</p>
+<section id="preview-box" class="hidden" aria-labelledby="preview-heading">
+  <h2 id="preview-heading">What the phone sees, with marks</h2>
+  <p class="small">Marks from the phone appear on this preview only. A regular web page cannot draw over your whole real screen without a browser extension.</p>
+  <div id="preview-stage" class="stage">
+    <video id="preview" autoplay playsinline muted aria-label="Preview of the screen you are sharing"></video>
+    <canvas id="ann-in" role="img" aria-label="Marks from the phone and the AI helper"></canvas>
+  </div>
+  <p id="ann-summary" class="small">No marks from the phone.</p>
+  <button type="button" id="clear-ann">Clear marks</button>
+</section>
+<section id="text-box" class="hidden" aria-labelledby="text-heading">
+  <h2 id="text-heading">Text to copy (from the phone or AI helper)</h2>
+  <p class="small">This text is only shown. It is never typed or run for you. Press Copy, or drag the chip into a box if you want it used.</p>
+  <pre id="got-text" class="got-text" tabindex="0" role="region" aria-label="Text received from the phone"></pre>
+  <button type="button" id="copy-text">Copy</button>
+  <p id="copy-status" class="small" role="status" aria-live="polite"></p>
+  <div id="text-chip" class="chip hidden" draggable="true" aria-hidden="true">Drag this text</div>
+</section>
+<section id="ai-box" aria-labelledby="ai-heading">
+  <h2 id="ai-heading">AI helper (private test build)</h2>
+  <p class="small">Off until you press the button. When on, an AI helper you give the short code to can ask for one picture at a time, draw marks, and suggest text with a Copy button. It cannot click or type. Every time it takes a picture, a yellow notice says so here and on the phone.</p>
+  <p id="ai-pro-note" class="small">The AI helper is part of Screen-View Pro. Enter a Pro key in the Pro box below to turn it on.</p>
+  <button type="button" id="ai-connect">Let an AI helper connect</button>
+  <button type="button" id="ai-stop" class="hidden">Stop AI helper</button>
+  <div id="ai-status" class="status" role="status" aria-live="polite">AI helper is off.</div>
+  <p class="hidden" id="ai-code-label">Tell the AI helper this code:</p>
+  <div id="ai-code" class="code hidden" aria-hidden="true"></div>
+  <p id="ai-code-spoken" class="sr-only"></p>
+  <div id="ext-status" class="small" aria-live="polite">Browser helper extension: not checked yet.</div>
+</section>
+<section id="ask-box" aria-labelledby="ask-heading">
+  <h2 id="ask-heading">Ask the practice AI helper</h2>
+  <p class="small">Practice only: it gives a sample answer and does not really read your screen yet. No AI company is contacted and nothing leaves this computer. It needs your screen to be shared, and it takes one picture each time you ask.</p>
+  <label for="ask-text">Your question</label>
+  <textarea id="ask-text" rows="2" autocomplete="off"></textarea>
+  <button type="button" id="ask-voice" class="hidden" aria-pressed="false">Ask out loud</button>
+  <div id="ask-consent" class="consent hidden" role="group" aria-labelledby="ask-consent-text">
+    <p id="ask-consent-text"></p>
+    <button type="button" id="ask-consent-yes">Yes, use my voice</button>
+    <button type="button" id="ask-consent-no">No, I will type</button>
+  </div>
+  <p id="ask-voice-note" class="small" role="status" aria-live="polite"></p>
+  <button type="button" id="ask-send">Get answer</button>
+  <p id="ask-note" class="small" role="status" aria-live="polite"></p>
+</section>
+<section id="ai-answer" class="answer hidden" aria-labelledby="answer-heading">
+  <h2 id="answer-heading">Answer from the AI helper</h2>
+  <p id="ai-answer-from" class="small"></p>
+  <p id="ai-answer-text" class="answer-text"></p>
+  <ol id="ai-answer-steps" class="answer-steps"></ol>
+  <button type="button" id="voice-steps">Read step by step</button>
+  <button type="button" id="voice-next" class="hidden">Next step</button>
+</section>
+<section id="voice-box" class="voice-box" aria-labelledby="voice-heading">
+  <h2 id="voice-heading">Read aloud</h2>
+  <p class="small">Off until you turn it on. When on, this page reads new messages out loud with your browser's own built-in voice. It is free, and Screen-View sends nothing anywhere for it.</p>
+  <button type="button" id="voice-toggle" class="toggle" aria-pressed="false">Read aloud: Off</button>
+  <button type="button" id="voice-again">Say it again</button>
+  <button type="button" id="voice-stop">Stop talking</button>
+  <div id="voice-rates" class="toolrow" role="toolbar" aria-label="Talking speed">
+    <button type="button" id="voice-rate-slow" class="tool" aria-pressed="false">Slow</button>
+    <button type="button" id="voice-rate-medium" class="tool on" aria-pressed="true">Medium</button>
+    <button type="button" id="voice-rate-normal" class="tool" aria-pressed="false">Normal</button>
+  </div>
+  <p id="voice-note" class="small" role="status" aria-live="polite">Read aloud is off. Nothing is read out loud unless you press a button.</p>
+</section>
+<section id="pro-box" aria-labelledby="pro-heading">
+  <h2 id="pro-heading">Screen-View Pro</h2>
+  <div id="pro-status" class="status" role="status" aria-live="polite">Checking for a saved Pro key&hellip;</div>
+  <div id="pro-enter">
+    <label for="pro-key">Paste your Pro key (from your purchase email). It is checked on this device; nothing is sent anywhere.</label>
+    <textarea id="pro-key" rows="3" autocomplete="off" spellcheck="false"></textarea>
+    <button type="button" id="pro-unlock">Unlock Pro</button>
+  </div>
+  <button type="button" id="pro-remove" class="hidden">Remove Pro key from this device</button>
+</section>
+<p class="small">Video goes straight from this browser to the phone. Only pick a harmless tab. Nothing is shared until you choose it in the browser's own box. Screen-View shares one tab or one window, never your whole screen. Test page: do not share private material.</p>
+<p class="small">Keyboard: press Tab to move between buttons, Enter or Space to press one.</p>
 </main>
+<div id="sr-announce" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="peerjs.min.js"></script>
 <script src="qrcode.js"></script>
 <script src="common.js"></script>
+<script src="annotate.js"></script>
+<script src="pro-public-key.js"></script>
+<script src="pro.js"></script>
+<script src="share-rule.js"></script>
 <script src="sender.js"></script>
+<script src="ai-marks.js"></script>
+<script src="ext-bridge.js"></script>
+<script src="tab-bridge.js"></script>
+<script src="connector-link.js"></script>
+<script src="voice.js"></script>
+<script src="answer-view.js"></script>
+<script src="ask.js"></script>
+<script type="module" src="ask-reader.js"></script>
+<script src="pro-ui.js"></script>
+<script src="sw-register.js"></script>
 </body></html>

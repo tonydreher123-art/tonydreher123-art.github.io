@@ -2,19 +2,98 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com">
 <meta name="referrer" content="no-referrer">
-<title>Screen-View: watch</title><link rel="stylesheet" href="style.css"></head>
-<body><main>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<title>Screen-View: watch (private test build)</title><link rel="stylesheet" href="style.css">
+<script src="a11y.js"></script></head>
+<body data-page="phone">
+<a class="skip" href="#main">Skip to the main buttons</a>
+<main id="main" tabindex="-1">
 <h1>Screen-View &mdash; Phone</h1>
+<section class="a11y-bar" aria-label="Display settings">
+  <button type="button" id="toggle-contrast" class="toggle" aria-pressed="false">High contrast</button>
+  <button type="button" id="toggle-bigtext" class="toggle" aria-pressed="false">Larger text</button>
+</section>
 <div id="status" class="status" role="status" aria-live="polite">Starting&hellip;</div>
+<div id="ai-snap-notice" class="ai-notice hidden" role="status" aria-live="polite"></div>
 <div id="ask" class="hidden">
-  <p>Type the room code from the Chromebook:</p>
-  <input id="codein" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" aria-label="room code">
-  <br><button id="go">Watch</button>
+  <label for="codein">Type the room code from the computer:</label><br>
+  <input id="codein" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" aria-describedby="code-hint">
+  <p id="code-hint" class="small">8 letters and numbers. The dash is optional.</p>
+  <button type="button" id="go">Watch</button>
 </div>
-<video id="v" autoplay playsinline muted></video>
-<button id="full" class="hidden">Full screen</button>
+<div id="stage" class="stage">
+  <video id="v" autoplay playsinline muted aria-label="The shared screen"></video>
+  <canvas id="ann-ai" role="img" aria-label="Marks from the AI helper (dashed lines)"></canvas>
+  <canvas id="ann" tabindex="-1" role="application" aria-roledescription="drawing area"
+    aria-label="Draw marks on the shared screen" aria-describedby="draw-help"></canvas>
+</div>
+<p id="ai-marks-summary" class="small hidden">No marks from the AI helper.</p>
+<p id="draw-help" class="small hidden">Draw with your finger or mouse. Keyboard: click or Tab to the screen, use the arrow keys to move the yellow cross (hold Shift for big steps), press Enter to start a mark, move, then Enter again to finish. Escape cancels.</p>
+<button type="button" id="full" class="hidden">Full screen</button>
+<div id="tools" class="tools hidden">
+  <div class="toolrow" role="toolbar" aria-label="Drawing tools">
+    <button type="button" id="tool-arrow" class="tool on" aria-pressed="true">Arrow</button>
+    <button type="button" id="tool-circle" class="tool" aria-pressed="false">Circle</button>
+    <button type="button" id="tool-highlight" class="tool" aria-pressed="false">Highlight</button>
+    <button type="button" id="tool-draw" class="tool" aria-pressed="false">Draw</button>
+  </div>
+  <div class="toolrow colorrow" role="toolbar" aria-label="Mark colors">
+    <button type="button" id="color-yellow" class="color on" data-color="#ffd400" aria-pressed="true"><span class="swatch" aria-hidden="true"></span>Yellow</button>
+    <button type="button" id="color-red" class="color" data-color="#ff3b30" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Red</button>
+    <button type="button" id="color-green" class="color" data-color="#00c853" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Green</button>
+    <button type="button" id="color-blue" class="color" data-color="#2f7bff" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Blue</button>
+    <button type="button" id="color-white" class="color" data-color="#ffffff" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>White</button>
+  </div>
+  <div class="toolrow">
+    <button type="button" id="undo">Undo</button>
+    <button type="button" id="clear-ann">Clear marks</button>
+  </div>
+  <div class="sendtext">
+    <label for="textout">Send text or code to the computer (it is only shown, never run)</label>
+    <textarea id="textout" rows="3" autocomplete="off" spellcheck="false"></textarea>
+    <button type="button" id="textout-voice" class="hidden" aria-pressed="false">Say it instead of typing</button>
+    <div id="textout-consent" class="consent hidden" role="group" aria-labelledby="textout-consent-text">
+      <p id="textout-consent-text"></p>
+      <button type="button" id="textout-consent-yes">Yes, use my voice</button>
+      <button type="button" id="textout-consent-no">No, I will type</button>
+    </div>
+    <p id="textout-voice-note" class="small" role="status" aria-live="polite"></p>
+    <button type="button" id="sendtext">Send text</button>
+    <p id="sentnote" class="small" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<section id="ai-answer" class="answer hidden" aria-labelledby="answer-heading">
+  <h2 id="answer-heading">Answer from the AI helper</h2>
+  <p id="ai-answer-from" class="small"></p>
+  <p id="ai-answer-text" class="answer-text"></p>
+  <ol id="ai-answer-steps" class="answer-steps"></ol>
+  <button type="button" id="voice-steps">Read step by step</button>
+  <button type="button" id="voice-next" class="hidden">Next step</button>
+</section>
+<section id="voice-box" class="voice-box" aria-labelledby="voice-heading">
+  <h2 id="voice-heading">Read aloud</h2>
+  <p class="small">Off until you turn it on. When on, this page reads new messages out loud with your browser's own built-in voice. It is free, and Screen-View sends nothing anywhere for it.</p>
+  <button type="button" id="voice-toggle" class="toggle" aria-pressed="false">Read aloud: Off</button>
+  <button type="button" id="voice-again">Say it again</button>
+  <button type="button" id="voice-stop">Stop talking</button>
+  <div id="voice-rates" class="toolrow" role="toolbar" aria-label="Talking speed">
+    <button type="button" id="voice-rate-slow" class="tool" aria-pressed="false">Slow</button>
+    <button type="button" id="voice-rate-medium" class="tool on" aria-pressed="true">Medium</button>
+    <button type="button" id="voice-rate-normal" class="tool" aria-pressed="false">Normal</button>
+  </div>
+  <p id="voice-note" class="small" role="status" aria-live="polite">Read aloud is off. Nothing is read out loud unless you press a button.</p>
+</section>
 </main>
+<div id="sr-announce" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="peerjs.min.js"></script>
 <script src="common.js"></script>
+<script src="annotate.js"></script>
+<script src="voice.js"></script>
+<script src="answer-view.js"></script>
+<script src="ask.js"></script>
 <script src="viewer.js"></script>
+<script src="sw-register.js"></script>
 </body></html>
