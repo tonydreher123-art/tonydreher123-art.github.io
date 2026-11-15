@@ -41,8 +41,8 @@ function render() {
   else say(`No ${K.PROVIDERS[p].label} key saved. Answers are free practice answers.`);
   $('aikey-remove').disabled = !s.saved; $('aikey-test').disabled = !s.saved;
   $('ask-mode').textContent = s.saved && pro
-    ? `Real answers from ${K.PROVIDERS[p].label}: each question sends one picture of your shared tab and your question to that company, and it charges your key. It needs your screen to be shared.`
-    : 'It needs your screen to be shared, and it takes one picture each time you ask. With no AI key (or without Pro) you get a free practice answer that does not really read your screen, and nothing leaves this computer.';
+    ? `Real answers from ${K.PROVIDERS[p].label}: each question sends one picture (of your shared tab, or the picture you chose) and your question to that company, and it charges your key. It needs your screen to be shared, or a picture chosen in "Upload your pictures".`
+    : 'It needs your screen to be shared (or a picture chosen in "Upload your pictures" above), and it takes one picture each time you ask. With no AI key (or without Pro) you get a free practice answer that does not really read your screen, and nothing leaves this computer.';
 }
 
 async function refresh() {
