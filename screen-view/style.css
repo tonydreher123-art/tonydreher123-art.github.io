@@ -188,3 +188,45 @@ html.hc #pro-unlock, html.hc #pro-remove { background: #fff !important; color: #
 #aikey-box select { font-size: 1.375rem; padding: 10px; border-radius: 12px; max-width: calc(100% - 20px); }
 input.keyfield { font-size: 1.375rem; width: 100%; max-width: 640px; text-align: left; text-transform: none; font-family: ui-monospace, monospace; }
 .cost-note { font-size: 1.25rem; max-width: 640px; margin: 12px auto; padding: 12px; border: 4px solid #ffd400; border-radius: 12px; background: #000; color: #fff; text-align: left; }
+
+/* UPLOAD BUILD (Nov 15, 2026): "Upload your pictures" box (pictures.js, site-upload.js). Same box look as Ask,
+   rem sizes (Larger text scales them), 48 px targets, check marks not only color, high-contrast versions. */
+#pictures-box { margin: 16px 0; padding: 8px 10px 14px; border: 3px solid #555; border-radius: 14px; background: #1a1a1a; }
+#pictures-box h3 { font-size: 1.5rem; margin: 20px 0 8px; }
+#pictures-box label { display: block; font-size: 1.25rem; margin: 8px 0 16px; }
+#pictures-box select { font-size: 1.375rem; padding: 10px; border-radius: 12px; max-width: calc(100% - 20px); }
+#pic-input { font-size: 1.25rem; width: 100%; max-width: 640px; text-align: left; text-transform: none; font-family: inherit; padding: 10px; background: #222; color: #fff; border: 3px solid #fff; }
+.dropzone { margin: 12px auto; max-width: 640px; padding: 24px 16px; font-size: 1.375rem; border: 4px dashed #fff; border-radius: 14px; background: #222; cursor: pointer; min-height: 96px; }
+.dropzone.over { background: #00223a; border-color: #ffd400; }
+.pic-list { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.pic-item { width: 280px; max-width: 100%; padding: 10px; border: 3px solid #555; border-radius: 12px; background: #111; }
+.pic-item.chosen { border: 5px solid #ffd400; }
+.pic-item img { display: block; max-width: 100%; max-height: 180px; margin: 0 auto; background: #fff; border-radius: 6px; }
+.pic-name { font-size: 1.125rem; margin: 8px 0; overflow-wrap: anywhere; }
+.pic-item button { min-width: 0; width: calc(100% - 8px); margin: 4px; font-size: 1.25rem; padding: 12px 10px; background: #333; color: #fff; }
+.pic-item .pic-use-btn[aria-pressed="true"] { background: #ffd400; color: #000; }
+.pic-item .pic-use-btn[aria-pressed="true"]::before { content: "\2713  "; }
+.pic-item .pic-remove { background: #b00020; }
+.pic-use { max-width: 640px; margin: 8px auto; border: 3px solid #555; border-radius: 12px; padding: 8px 12px; text-align: left; }
+.pic-use legend { font-size: 1.25rem; font-weight: bold; padding: 0 6px; }
+#pictures-box label.choice { display: flex; gap: 12px; align-items: flex-start; margin: 10px 0; min-height: 48px; }
+#pictures-box label.choice input { width: 28px; height: 28px; min-height: 28px; flex: none; margin: 4px 0 0; }
+#pictures-box input[type="radio"]:disabled + span { color: #999; }
+.site-upload { margin: 16px auto 0; max-width: 760px; text-align: left; border: 3px solid #555; border-radius: 12px; padding: 8px 12px; }
+.site-upload summary, #up-advanced summary { font-size: 1.375rem; font-weight: bold; cursor: pointer; min-height: 48px; padding: 10px 4px; }
+.site-upload > label, .site-upload > select, .site-upload > button, .site-upload > .toolrow, .site-upload > #up-advanced label { text-align: left; }
+.how-list { font-size: 1.125rem; margin: 8px 0; padding-left: 28px; }
+.how-list li { margin: 6px 0; }
+#up-start, #up-yes { background: #0b57d0; color: #fff; }
+#up-no { background: #444; color: #fff; }
+.up-results { font-size: 1.125rem; overflow-wrap: anywhere; }
+.up-results li { margin: 6px 0; }
+html.hc #pictures-box, html.hc .pic-item, html.hc .pic-use, html.hc .site-upload { background: #000; border-color: #fff; }
+html.hc .pic-item.chosen { border-color: #ffd400; }
+html.hc .dropzone { background: #000; border-color: #fff; color: #fff; }
+html.hc .dropzone.over { border-color: #ffd400; }
+html.hc #pic-input { background: #000; color: #fff; border-color: #fff; }
+html.hc .pic-item .pic-use-btn[aria-pressed="true"] { background: #ffd400 !important; color: #000 !important; }
+html.hc #up-start, html.hc #up-yes { background: #fff !important; color: #000 !important; border-color: #ffd400 !important; }
+html.hc #pictures-box input[type="radio"]:disabled + span { color: #bbb; }
+@media (forced-colors: active) { .dropzone, .pic-item { border: 3px solid ButtonText; } }

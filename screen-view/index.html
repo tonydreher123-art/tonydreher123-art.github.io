@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com ws://127.0.0.1:* ws://localhost:* https://api.anthropic.com https://api.openai.com https://api.x.ai">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com ws://127.0.0.1:* ws://localhost:* https://api.anthropic.com https://api.openai.com https://api.x.ai https://api.github.com">
 <meta name="referrer" content="no-referrer">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#111111">
@@ -60,7 +60,7 @@
 </section>
 <section id="aikey-box" aria-labelledby="aikey-heading">
   <h2 id="aikey-heading">Your AI key (for real answers)</h2>
-  <p id="aikey-cost" class="cost-note">Real answers cost money. Each time you press &ldquo;Get answer&rdquo;, one picture of the tab you are sharing and your question go to the AI company you pick, and that company charges your key a small amount for it. Check that company&rsquo;s price page. Screen-View charges nothing extra and never sees your bill.</p>
+  <p id="aikey-cost" class="cost-note">Real answers cost money. Each time you press &ldquo;Get answer&rdquo;, one picture (of the tab you are sharing, or the picture you chose in &ldquo;Upload your pictures&rdquo;) and your question go to the AI company you pick, and that company charges your key a small amount for it. Check that company&rsquo;s price page. Screen-View charges nothing extra and never sees your bill.</p>
   <p class="small">Your key is kept only on this device. It is sent only to the company it belongs to, never to Screen-View or anyone else. Real answers are part of Screen-View Pro. With no key, you get the free practice answer.</p>
   <label for="aikey-provider">AI company</label>
   <select id="aikey-provider">
@@ -81,9 +81,68 @@
   <p id="aikey-where" class="small"></p>
   <div id="aikey-status" class="status" role="status" aria-live="polite">Checking for a saved AI key&hellip;</div>
 </section>
+<section id="pictures-box" aria-labelledby="pictures-heading">
+  <h2 id="pictures-heading">Upload your pictures</h2>
+  <p class="small">Add your own pictures from this device, such as icons or screenshots. They stay on this device: this page keeps them only until you close it, and sends them nowhere by itself.</p>
+  <label for="pic-input">Choose pictures (PNG, JPG, GIF or WebP, up to 5 MB each)</label>
+  <input type="file" id="pic-input" accept="image/*" multiple>
+  <div id="pic-drop" class="dropzone" tabindex="0" role="button" aria-label="Choose pictures, or drag pictures here">Or drag pictures here. You can also copy a screenshot and paste it on this page with Ctrl+V.</div>
+  <div id="pic-status" class="status" role="status" aria-live="polite">No pictures picked yet.</div>
+  <ul id="pic-list" class="pic-list" aria-label="Pictures you picked"></ul>
+  <h3 id="pic-ai-heading">Show a picture to the AI helper</h3>
+  <p class="small">Anyone can use this. The AI helper can look at a picture you chose instead of your shared screen, so you do not need to share your screen. Your picture leaves this device only when you press &ldquo;Get answer&rdquo;, and then only to the AI company your key belongs to (the free practice answer sends it nowhere).</p>
+  <fieldset id="pic-use" class="pic-use">
+    <legend>When I press &ldquo;Get answer&rdquo;, look at:</legend>
+    <label class="choice" for="pic-use-screen"><input type="radio" name="pic-use" id="pic-use-screen" value="screen" checked> <span>My shared screen</span></label>
+    <label class="choice" for="pic-use-picture"><input type="radio" name="pic-use" id="pic-use-picture" value="picture" disabled> <span>The picture I chose above (no screen sharing needed)</span></label>
+  </fieldset>
+  <details id="site-upload" class="site-upload">
+    <summary>Add pictures to my website (site owner only)</summary>
+    <p class="cost-note">This puts the pictures you picked above onto your public website on GitHub. After that, anyone on the internet can see them. Only use pictures you are happy to make public.</p>
+    <p class="small">It needs a GitHub token. Make a fine-grained token that can reach only this one repository, with &ldquo;Contents: Read and write&rdquo; and an expiry date:</p>
+    <ol class="how-list">
+      <li>On github.com, open Settings, then Developer settings, then Personal access tokens, then Fine-grained tokens. Press &ldquo;Generate new token&rdquo;.</li>
+      <li>Give it a name and an expiry date, for example 30 days.</li>
+      <li>Under &ldquo;Repository access&rdquo;, pick &ldquo;Only select repositories&rdquo; and choose only tonydreher123-art.github.io.</li>
+      <li>Under &ldquo;Repository permissions&rdquo;, set &ldquo;Contents&rdquo; to &ldquo;Read and write&rdquo;. Leave everything else as it is.</li>
+      <li>Press &ldquo;Generate token&rdquo;, copy it, and paste it below.</li>
+    </ol>
+    <p class="small">Your token stays on this device, kept only in this browser. It is sent only to GitHub, never to Screen-View, the AI companies, or anyone else. Press &ldquo;Remove token&rdquo; when you are done.</p>
+    <label for="gh-token">Paste your GitHub token</label>
+    <input type="password" id="gh-token" class="keyfield" autocomplete="off" spellcheck="false" autocapitalize="off">
+    <div class="toolrow">
+      <button type="button" id="gh-token-save">Save token</button>
+      <button type="button" id="gh-token-remove">Remove token</button>
+    </div>
+    <div id="gh-token-status" class="status" role="status" aria-live="polite">Checking for a saved GitHub token&hellip;</div>
+    <label for="up-folder">Folder on my website</label>
+    <select id="up-folder">
+      <option value="screen-view/icons">screen-view/icons (app icons)</option>
+      <option value="screen-view/screenshots">screen-view/screenshots</option>
+    </select>
+    <details id="up-advanced">
+      <summary>Advanced: which GitHub repository</summary>
+      <label for="up-owner">Owner</label>
+      <input type="text" id="up-owner" class="keyfield" value="tonydreher123-art" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <label for="up-repo">Repository</label>
+      <input type="text" id="up-repo" class="keyfield" value="tonydreher123-art.github.io" autocomplete="off" spellcheck="false" autocapitalize="off">
+      <label for="up-branch">Branch</label>
+      <input type="text" id="up-branch" class="keyfield" value="main" autocomplete="off" spellcheck="false" autocapitalize="off">
+    </details>
+    <p id="up-names" class="small"></p>
+    <button type="button" id="up-start">Put my pictures on my website</button>
+    <div id="up-confirm" class="consent hidden" role="group" aria-labelledby="up-confirm-text">
+      <p id="up-confirm-text"></p>
+      <button type="button" id="up-yes">Yes, put them on my website</button>
+      <button type="button" id="up-no">No, cancel</button>
+    </div>
+    <div id="up-status" class="status" role="status" aria-live="polite">Nothing uploaded yet.</div>
+    <ol id="up-results" class="up-results" aria-label="Upload results, one line per picture"></ol>
+  </details>
+</section>
 <section id="ask-box" aria-labelledby="ask-heading">
   <h2 id="ask-heading">Ask the AI helper</h2>
-  <p id="ask-mode" class="small">It needs your screen to be shared, and it takes one picture each time you ask. With no AI key (or without Pro) you get a free practice answer that does not really read your screen, and nothing leaves this computer.</p>
+  <p id="ask-mode" class="small">It needs your screen to be shared (or a picture chosen in &ldquo;Upload your pictures&rdquo; above), and it takes one picture each time you ask. With no AI key (or without Pro) you get a free practice answer that does not really read your screen, and nothing leaves this computer.</p>
   <label for="ask-text">Your question</label>
   <textarea id="ask-text" rows="2" autocomplete="off"></textarea>
   <button type="button" id="ask-voice" class="hidden" aria-pressed="false">Ask out loud</button>
@@ -146,6 +205,8 @@
 <script src="voice.js"></script>
 <script src="answer-view.js"></script>
 <script src="ask.js"></script>
+<script src="pictures.js"></script>
+<script src="site-upload.js"></script>
 <script type="module" src="ask-reader.js"></script>
 <script src="ai-keys.js"></script>
 <script type="module" src="ai-key-ui.js"></script>
