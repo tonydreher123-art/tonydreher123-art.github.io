@@ -25,7 +25,16 @@ export function directTransport(fetchImpl = globalThis.fetch) {
       if (!allowedUrl(provider, url)) throw new Error('That address is not one of the three AI companies.');
       const text = body === undefined ? undefined : JSON.stringify(body);
       if (text && text.length > MAX_BODY) throw new Error('The picture is too big to send.');
-      const res = await fetchImpl(url, { method, headers, body: text, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
+      // Hotfix Nov 15, 2026: give up after 60 seconds so a stalled request can never leave Get answer stuck.
+      const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+      const timer = ctl ? setTimeout(() => ctl.abort(), 60000) : null;
+      let res;
+      try {
+        res = await fetchImpl(url, { method, headers, body: text, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+      } catch (e) {
+        if (ctl && ctl.signal.aborted) throw new Error('The AI company did not answer within 60 seconds. Please press Get answer again.');
+        throw e;
+      } finally { if (timer) clearTimeout(timer); }
       let json = null;
       try { json = await res.json(); } catch (e) { json = null; }
       return { status: res.status, json };

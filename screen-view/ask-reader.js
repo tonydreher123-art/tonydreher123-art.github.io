@@ -1,4 +1,4 @@
-// Computer page: "Ask the AI helper" (voice-ai-2026-11-10; RC3 Nov 14, 2026: real answers switched on).
+// Computer page (hotfix 2026-11-15): "Ask the AI helper" (voice-ai-2026-11-10; RC3 Nov 14, 2026: real answers switched on).
 // Real answer: only when an AI key is saved in the "Your AI key" box AND Screen-View Pro is on (window.SVAiLive.pick()).
 // Otherwise the free PRACTICE helper ("mock") answers: no key, no network, no AI company, and it does not really
 // look at the picture.
@@ -9,7 +9,15 @@ import { createReader, createMockProvider, toConnectorArgs } from './reader/inde
 
 const $ = id => document.getElementById(id);
 const R = window.SVAskReader = { asked: 0, answered: 0, live: 0, last: null, lastError: null, busy: false, lastMode: null };
-const note = t => { $('ask-note').textContent = t; };
+// Hotfix Nov 15, 2026: every press now shows a fresh, timed message (so a repeat press never looks like "nothing
+// happened"), the button says "Working…" while busy, and the message is scrolled into view.
+const note = t => {
+  const el = $('ask-note');
+  const at = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  el.textContent = t + ' (' + at + ')';
+  try { el.scrollIntoView({ block: 'nearest' }); } catch (e) { /* ignore */ }
+};
+const setBusy = on => { R.busy = on; const b = $('ask-send'); b.textContent = on ? 'Working…' : 'Get answer'; b.setAttribute('aria-busy', on ? 'true' : 'false'); };
 
 function choose() {
   const L = window.SVAiLive;
@@ -18,13 +26,13 @@ function choose() {
 }
 
 async function ask() {
-  if (R.busy) return;
+  if (R.busy) { note('Still waiting for the last answer. It will finish or stop by itself within about a minute.'); return; }
   const q = $('ask-text').value.trim();
   if (!q) { note('Please type or say a question first.'); $('ask-text').focus(); return; }
   if (!(window.SVSender && window.SVSender.isSharing())) { note('Share your screen first, so the helper has a picture to look at.'); return; }
   const pick = choose();
   const who = pick.live ? pick.label : 'the practice AI helper';
-  R.busy = true; R.asked++; R.lastMode = pick.live ? 'live' : 'practice';
+  setBusy(true); R.asked++; R.lastMode = pick.live ? 'live' : 'practice';
   note(pick.live ? `Sending one picture and your question to ${pick.label}… (this is charged to your key)` : 'Thinking…');
   try {
     const pic = await window.SVConnector.defaultCapture(1024);
@@ -42,7 +50,7 @@ async function ask() {
   } catch (e) {
     R.lastError = { message: String(e && e.message || e) };
     note(`${pick.live ? pick.label : 'The practice helper'} could not answer: ` + R.lastError.message);
-  } finally { R.busy = false; }
+  } finally { setBusy(false); }
 }
 $('ask-send').addEventListener('click', ask);
 R.ready = true;

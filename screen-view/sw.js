@@ -11,7 +11,7 @@
 'use strict';
 // RC3 BUILD Nov 14 2026: adds ai-keys.js, ai-key-ui.js, reader/providers/transport.js; real Pro public key.
 // AI company requests (api.anthropic.com, api.openai.com, api.x.ai) are other origins: never cached.
-const VERSION = 'sv-shell-rc3-2026-11-14-2';
+const VERSION = 'sv-shell-rc3-2026-11-15-1';
 const SHELL = [
   'index.html', 'view.html', 'style.css', 'LICENSES.txt', 'a11y.js', 'ai-marks.js', 'annotate.js',
   'ai-key-ui.js', 'ai-keys.js', 'answer-view.js', 'ask-reader.js', 'ask.js', 'common.js', 'connector-link.js', 'ext-bridge.js',
