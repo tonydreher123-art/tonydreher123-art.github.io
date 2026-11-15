@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com ws://127.0.0.1:* ws://localhost:*">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com ws://127.0.0.1:* ws://localhost:* https://api.anthropic.com https://api.openai.com https://api.x.ai">
 <meta name="referrer" content="no-referrer">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#111111">
@@ -58,9 +58,32 @@
   <p id="ai-code-spoken" class="sr-only"></p>
   <div id="ext-status" class="small" aria-live="polite">Browser helper extension: not checked yet.</div>
 </section>
+<section id="aikey-box" aria-labelledby="aikey-heading">
+  <h2 id="aikey-heading">Your AI key (for real answers)</h2>
+  <p id="aikey-cost" class="cost-note">Real answers cost money. Each time you press &ldquo;Get answer&rdquo;, one picture of the tab you are sharing and your question go to the AI company you pick, and that company charges your key a small amount for it. Check that company&rsquo;s price page. Screen-View charges nothing extra and never sees your bill.</p>
+  <p class="small">Your key is kept only on this device. It is sent only to the company it belongs to, never to Screen-View or anyone else. Real answers are part of Screen-View Pro. With no key, you get the free practice answer.</p>
+  <label for="aikey-provider">AI company</label>
+  <select id="aikey-provider">
+    <option value="claude">Claude (Anthropic)</option>
+    <option value="openai">ChatGPT (OpenAI)</option>
+    <option value="grok">Grok (xAI)</option>
+  </select>
+  <label for="aikey-input">Paste your AI key</label>
+  <input type="password" id="aikey-input" class="keyfield" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="aikey-cost">
+  <label for="aikey-model">AI model (you can leave this as it is)</label>
+  <input type="text" id="aikey-model" class="keyfield" autocomplete="off" spellcheck="false" autocapitalize="off">
+  <label class="agree" for="aikey-agree"><input type="checkbox" id="aikey-agree"> <span>I understand each question is charged to my key by that company.</span></label>
+  <div class="toolrow">
+    <button type="button" id="aikey-save">Save key</button>
+    <button type="button" id="aikey-test">Test key</button>
+    <button type="button" id="aikey-remove">Remove key</button>
+  </div>
+  <p id="aikey-where" class="small"></p>
+  <div id="aikey-status" class="status" role="status" aria-live="polite">Checking for a saved AI key&hellip;</div>
+</section>
 <section id="ask-box" aria-labelledby="ask-heading">
-  <h2 id="ask-heading">Ask the practice AI helper</h2>
-  <p class="small">Practice only: it gives a sample answer and does not really read your screen yet. No AI company is contacted and nothing leaves this computer. It needs your screen to be shared, and it takes one picture each time you ask.</p>
+  <h2 id="ask-heading">Ask the AI helper</h2>
+  <p id="ask-mode" class="small">It needs your screen to be shared, and it takes one picture each time you ask. With no AI key (or without Pro) you get a free practice answer that does not really read your screen, and nothing leaves this computer.</p>
   <label for="ask-text">Your question</label>
   <textarea id="ask-text" rows="2" autocomplete="off"></textarea>
   <button type="button" id="ask-voice" class="hidden" aria-pressed="false">Ask out loud</button>
@@ -124,6 +147,8 @@
 <script src="answer-view.js"></script>
 <script src="ask.js"></script>
 <script type="module" src="ask-reader.js"></script>
+<script src="ai-keys.js"></script>
+<script type="module" src="ai-key-ui.js"></script>
 <script src="pro-ui.js"></script>
 <script src="sw-register.js"></script>
 </body></html>

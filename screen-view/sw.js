@@ -9,10 +9,12 @@
 // without being stored. Only same-origin GET requests for the exact files in SHELL are
 // answered from the cache, and only those files are ever written to it.
 'use strict';
-const VERSION = 'sv-shell-rc2-2026-11-10-1';
+// RC3 BUILD Nov 14 2026: adds ai-keys.js, ai-key-ui.js, reader/providers/transport.js; real Pro public key.
+// AI company requests (api.anthropic.com, api.openai.com, api.x.ai) are other origins: never cached.
+const VERSION = 'sv-shell-rc3-2026-11-14-1';
 const SHELL = [
   'index.html', 'view.html', 'style.css', 'LICENSES.txt', 'a11y.js', 'ai-marks.js', 'annotate.js',
-  'answer-view.js', 'ask-reader.js', 'ask.js', 'common.js', 'connector-link.js', 'ext-bridge.js',
+  'ai-key-ui.js', 'ai-keys.js', 'answer-view.js', 'ask-reader.js', 'ask.js', 'common.js', 'connector-link.js', 'ext-bridge.js',
   'manifest.webmanifest', 'peerjs.min.js', 'pro-public-key.js', 'pro-ui.js', 'pro.js', 'qrcode.js',
   'sender.js', 'share-rule.js', 'sw-register.js', 'tab-bridge.js', 'viewer.js', 'voice.js',
   'icons/apple-touch-icon-180.png', 'icons/favicon-32.png', 'icons/icon-128.png', 'icons/icon-144.png',
@@ -21,7 +23,7 @@ const SHELL = [
   'icons/maskable-512.png', 'reader/index.js', 'reader/lib/guidance.js', 'reader/lib/prompt.js',
   'reader/lib/reader.js', 'reader/lib/snapshot.js', 'reader/providers/adapter-base.js',
   'reader/providers/claude.js', 'reader/providers/grok.js', 'reader/providers/mock.js',
-  'reader/providers/openai-compatible.js', 'reader/providers/openai.js'
+  'reader/providers/openai-compatible.js', 'reader/providers/openai.js', 'reader/providers/transport.js'
 ];
 const SCOPE = new URL('./', self.location.href);
 const SHELL_PATHS = new Set(SHELL.map((p) => new URL(p, SCOPE).pathname));
