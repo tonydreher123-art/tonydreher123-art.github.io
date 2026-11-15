@@ -12,9 +12,9 @@
 // RC3 BUILD Nov 14 2026: adds ai-keys.js, ai-key-ui.js, reader/providers/transport.js; real Pro public key.
 // AI company requests (api.anthropic.com, api.openai.com, api.x.ai) are other origins: never cached.
 // Nov 15, 2026 (upload build): adds pictures.js and site-upload.js. api.github.com is another origin: never cached.
-// Nov 15 2026 (-7, share-friction fix): every shell file is now fetched from the network first (revalidated, so a
+// Nov 15 2026 (-8: Get answer never sends an uploaded picture while sharing). (-7, share-friction fix): every shell file is now fetched from the network first (revalidated, so a
 // new deploy shows up on the FIRST open, not the second), with the stored copy used only when offline or slow.
-const VERSION = 'sv-shell-rc3-2026-11-15-7';
+const VERSION = 'sv-shell-rc3-2026-11-15-8';
 const SHELL = [
   'index.html', 'view.html', 'style.css', 'LICENSES.txt', 'a11y.js', 'ai-marks.js', 'annotate.js',
   'ai-key-ui.js', 'ai-keys.js', 'answer-view.js', 'ask-reader.js', 'ask.js', 'common.js', 'connector-link.js', 'ext-bridge.js',

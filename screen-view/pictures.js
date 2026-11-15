@@ -71,14 +71,19 @@
   }
 
   const say = (t) => { $('pic-status').textContent = t; };
+  // Nov 15 2026 (no upload residue): while a tab is shared, "Get answer" looks ONLY at the shared screen.
+  // No picture can be chosen for it, and no picture data can be read for it, until sharing stops.
+  const sharing = () => !!(window.SVSender && window.SVSender.isSharing && window.SVSender.isSharing());
+  P.sharing = sharing;
   const selected = () => P.items.find((i) => i.id === P.selectedId) || null;
   P.selected = selected;
   P.mode = () => ($('pic-use-picture').checked ? 'picture' : 'screen');
   // True when "Get answer" should use the chosen picture instead of the shared screen.
-  P.useForAnswer = () => P.mode() === 'picture' && !!selected();
+  P.useForAnswer = () => !sharing() && P.mode() === 'picture' && !!selected();
   P.choiceLabel = () => { const s = selected(); return s ? s.name : ''; };
   // The picture for "Get answer": PNG data link, at most 1024 pixels wide (the reader accepts PNG only).
   P.snapshotForAnswer = async () => {
+    if (sharing()) throw new Error('Your screen is being shared, so "Get answer" looks only at the shared screen.');
     const s = selected();
     if (!s) throw new Error('No picture is chosen.');
     const img = await decode(s.file);
@@ -88,7 +93,7 @@
   };
 
   function setMode(m) {
-    const has = !!selected();
+    const has = !!selected() && !sharing();
     $('pic-use-picture').disabled = !has;
     if (m === 'picture' && has) $('pic-use-picture').checked = true; else if (!has || m === 'screen') $('pic-use-screen').checked = true;
   }
@@ -110,7 +115,11 @@
       use.setAttribute('aria-pressed', it.id === P.selectedId ? 'true' : 'false');
       use.textContent = it.id === P.selectedId ? 'Chosen for Get answer' : 'Use for Get answer';
       use.setAttribute('aria-label', (it.id === P.selectedId ? 'Chosen for Get answer: ' : 'Use for Get answer: ') + it.name);
-      use.addEventListener('click', () => { P.selectedId = it.id; setMode('picture'); render(); say('"' + it.name + '" is chosen. "Get answer" will look at this picture.'); });
+      if (sharing()) { use.disabled = true; use.textContent = 'Use for Get answer (after sharing stops)'; use.setAttribute('aria-label', 'Use for Get answer, available after sharing stops: ' + it.name); }
+      use.addEventListener('click', () => {
+        if (sharing()) { say('Your screen is being shared, so "Get answer" looks only at the shared screen. Stop sharing first to use a picture.'); return; }
+        P.selectedId = it.id; setMode('picture'); render(); say('"' + it.name + '" is chosen. "Get answer" will look at this picture.');
+      });
       const rm = document.createElement('button');
       rm.type = 'button'; rm.className = 'pic-remove';
       rm.textContent = 'Remove'; rm.setAttribute('aria-label', 'Remove ' + it.name);
@@ -118,14 +127,15 @@
       li.append(img, cap, use, rm);
       ul.appendChild(li);
     }
-    $('pic-use-picture').disabled = !selected();
+    $('pic-use-picture').disabled = !selected() || sharing();
+    if (sharing()) $('pic-use-screen').checked = true;
     if (P.onChange) { try { P.onChange(); } catch (e) { /* ignore */ } }
   }
 
   function remove(id) {
     const it = P.items.find((i) => i.id === id);
     P.items = P.items.filter((i) => i.id !== id);
-    if (P.selectedId === id) { P.selectedId = P.items.length ? P.items[0].id : 0; }
+    if (P.selectedId === id) { P.selectedId = (P.items.length && !sharing()) ? P.items[0].id : 0; }
     setMode(P.selectedId ? P.mode() : 'screen');
     render();
     say((it ? '"' + it.name + '" removed. ' : '') + (P.items.length ? P.items.length + ' picture' + (P.items.length === 1 ? '' : 's') + ' left.' : 'No pictures picked. "Get answer" will look at your shared screen.'));
@@ -153,8 +163,8 @@
     }
     P.rejected = bad;
     // Nov 15 2026: while a tab is shared, the live screen stays the default; a new picture is only pre-picked.
-    const sharingNow = !!(window.SVSender && window.SVSender.isSharing && window.SVSender.isSharing());
-    if (added.length && !selected()) { P.selectedId = added[0].id; setMode(sharingNow ? 'screen' : 'picture'); }
+    // Nov 15 2026 (no upload residue): while sharing, a new picture is NOT chosen for Get answer.
+    if (added.length && !selected() && !sharing()) { P.selectedId = added[0].id; setMode('picture'); }
     render();
     const parts = [];
     if (added.length) parts.push('Added ' + added.length + ' picture' + (added.length === 1 ? '' : 's') + '.' + (P.useForAnswer() ? ' "Get answer" will look at "' + selected().name + '" (no screen sharing needed).' : ''));
@@ -181,12 +191,13 @@
     $('pic-use-screen').addEventListener('change', () => { render(); say('"Get answer" will look at your shared screen.'); });
     $('pic-use-picture').addEventListener('change', () => { render(); const s = selected(); if (s) say('"Get answer" will look at "' + s.name + '" (no screen sharing needed).'); });
     setMode('screen');
-    // Nov 15 2026: prefer the live shared screen whenever sharing starts; when sharing stops and a picture is
-    // chosen, fall back to that picture. "Use for Get answer" still picks a picture on purpose while sharing.
+    // Nov 15 2026 (no upload residue): when sharing starts, any picture chosen for "Get answer" is cleared, so
+    // nothing from an earlier upload can ride along. When sharing stops, nothing is chosen again by itself.
+    // The pictures themselves stay in the list for "Add pictures to my website".
     window.addEventListener('sv:sharing', (e) => {
       const on = !!(e && e.detail && e.detail.sharing);
-      if (on) { setMode('screen'); render(); say('"Get answer" will look at your shared screen.'); }
-      else if (selected()) { setMode('picture'); render(); say('Sharing stopped. "Get answer" will look at "' + selected().name + '".'); }
+      if (on) { P.selectedId = 0; P.clearedOnShare = (P.clearedOnShare || 0) + 1; setMode('screen'); render(); say('Sharing started. "Get answer" looks only at your shared screen; no uploaded picture is sent.' + (P.items.length ? ' Your pictures stay here for "Add pictures to my website".' : '')); }
+      else { setMode('screen'); render(); say('Sharing stopped. No picture is chosen for "Get answer".' + (P.items.length ? ' Press "Use for Get answer" on a picture if you want the helper to look at it.' : '')); }
     });
     P.ready = true;
   }

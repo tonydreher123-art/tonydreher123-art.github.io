@@ -44,8 +44,11 @@ async function ask() {
   note(pick.live ? (usePic ? `Sending your chosen picture and your question to ${pick.label}… (this is charged to your key)` : `Sending one picture and your question to ${pick.label}… (this is charged to your key)`) : 'Thinking…');
   try {
     let snapshot;
-    if (usePic) snapshot = await PIC.snapshotForAnswer();
+    // Nov 15 2026 (no upload residue): check sharing again right before reading anything. If sharing started
+    // while this press was starting, the shared screen is used and no picture data is read or sent.
+    if (usePic && !(window.SVSender && window.SVSender.isSharing())) { snapshot = await PIC.snapshotForAnswer(); R.picturesSent = (R.picturesSent || 0) + 1; }
     else {
+      if (usePic) { R.lastSource = 'screen'; }
       const pic = await window.SVConnector.defaultCapture(1024);
       if (window.SVLink && window.SVLink.noteSnapshot) window.SVLink.noteSnapshot();
       snapshot = 'data:image/png;base64,' + pic.png;
