@@ -18,7 +18,7 @@
       video: { frameRate: o.frameRate || 15, displaySurface: 'browser' },
       audio: false,
       preferCurrentTab: false,
-      selfBrowserSurface: 'exclude',
+      selfBrowserSurface: 'include',
       monitorTypeSurfaces: 'exclude',
       surfaceSwitching: 'include'
     };
