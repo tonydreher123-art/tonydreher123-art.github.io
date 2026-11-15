@@ -6,12 +6,17 @@
 // Pure functions only: no page access, no network. Also loadable in Node for unit tests.
 (function (root) {
   // Hints for the browser's own "choose what to share" box. Browsers ignore hints they don't know.
-  //  - displaySurface 'browser': list tabs first (Chrome/Edge 107+).
-  //  - preferCurrentTab false: do NOT pre-pick the Screen-View page itself (sharing it would show
-  //    the phone a picture of its own picture).
-  //  - selfBrowserSurface 'exclude': leave the Screen-View tab out of the list (Chrome/Edge 112+).
-  //  - monitorTypeSurfaces 'exclude': leave "Entire screen" out of the list (Chrome/Edge 119+).
-  //  - surfaceSwitching 'include': allow "Share this tab instead" (tab to tab) in Chrome.
+  // Nov 15 2026 (share-friction fix, checked against developer.chrome.com "screen-sharing-controls", MDN
+  // getDisplayMedia, and Chromium's source: user_media_request.cc + desktop_media_picker_views.cc):
+  //  - preferCurrentTab true: current desktop Chrome (incl. ChromeOS) then shows ONLY the small
+  //    "Share this tab?" box (Allow/Cancel), with no tab list. One click on Share is still required:
+  //    Chrome requires it every time and no web page can skip it. Chrome 94 to about 106 showed the full
+  //    list with "This tab" pre-picked instead (one more click). Chrome does NOT show the
+  //    "Share this tab instead" button for a this-tab share, so sharing a DIFFERENT tab needs
+  //    otherTabOptions() below (the "Share a different tab" button).
+  //  - selfBrowserSurface 'include': required with preferCurrentTab true ('exclude' + true is a TypeError).
+  //  - displaySurface 'browser', monitorTypeSurfaces 'exclude', surfaceSwitching 'include': only used when a
+  //    browser shows a full list (older Chrome, Edge, otherTabOptions); harmless otherwise.
   function displayMediaOptions(opts) {
     const o = opts || {};
     return {
@@ -22,6 +27,30 @@
       monitorTypeSurfaces: 'exclude',
       surfaceSwitching: 'include'
     };
+  }
+
+  // "Share a different tab": Chrome's full list of tabs (Screen-View's own tab left out, so no picture
+  // inside a picture), whole screen left out, "Share this tab instead" allowed while sharing.
+  function otherTabOptions(opts) {
+    const o = opts || {};
+    return {
+      video: { frameRate: o.frameRate || 15, displaySurface: 'browser' },
+      audio: false,
+      preferCurrentTab: false,
+      selfBrowserSurface: 'exclude',
+      monitorTypeSurfaces: 'exclude',
+      surfaceSwitching: 'include'
+    };
+  }
+
+  // If a browser rejects the hints with a TypeError, try again with fewer hints, but keep
+  // preferCurrentTab (when it was asked for) so the one-click "Share this tab?" box is not lost.
+  function fallbackOptions(opts, current) {
+    const o = opts || {};
+    const list = [];
+    if (current !== false) list.push({ video: { frameRate: o.frameRate || 15 }, audio: false, preferCurrentTab: true });
+    list.push({ video: { frameRate: o.frameRate || 15 }, audio: false });
+    return list;
   }
 
   const MSG = {
@@ -54,7 +83,7 @@
     return judge(st);
   }
 
-  const api = { displayMediaOptions, judge, judgeTrack, MSG };
+  const api = { displayMediaOptions, otherTabOptions, fallbackOptions, judge, judgeTrack, MSG };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.SVShareRule = api;
 })(typeof window !== 'undefined' ? window : null);

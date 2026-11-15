@@ -120,6 +120,7 @@
       try { const q = qrcode(0, 'M'); q.addData(S.link); q.make(); $('qr').innerHTML = q.createImgTag(8, 0, 'QR code to open the viewer on the phone'); }
       catch (e) { $('qr').classList.add('hidden'); }
       $('share').disabled = false;
+      if ($('share-other')) $('share-other').disabled = false;
       refresh();
     });
     peer.on('connection', conn => {
@@ -181,17 +182,24 @@
     refresh();
   }
 
-  async function share() {
+  // Nov 15 2026 (share-friction fix): "Share my screen" = one-click "Share this tab?" (preferCurrentTab).
+  // "Share a different tab" = Chrome's full tab list. getDisplayMedia is called first thing inside the click
+  // (no await before it), because Chrome only allows it straight after a user's click.
+  async function share(ev, other) {
     // POLISH BUILD: share-surface rule (share-rule.js). Tab or window only; whole screen refused.
     const R = window.SVShareRule;
     shareNote('', '');
     let got = null;
-    try { got = await navigator.mediaDevices.getDisplayMedia(R.displayMediaOptions({ frameRate: 15 })); }
+    const first = other ? R.otherTabOptions({ frameRate: 15 }) : R.displayMediaOptions({ frameRate: 15 });
+    try { got = await navigator.mediaDevices.getDisplayMedia(first); }
     catch (e) {
-      // Very old browsers may reject unknown hint names; try once more with the plain request.
+      // A browser that rejects some hint names: try again with fewer hints (keeping preferCurrentTab).
       if (e && e.name === 'TypeError') {
-        try { got = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: false }); }
-        catch (e2) { status('Sharing was cancelled. Nothing was shared.'); return; }
+        for (const opt of R.fallbackOptions({ frameRate: 15 }, !other)) {
+          try { got = await navigator.mediaDevices.getDisplayMedia(opt); S.usedFallback = true; break; }
+          catch (e2) { if (!(e2 && e2.name === 'TypeError')) break; }
+        }
+        if (!got) { status('Sharing was cancelled. Nothing was shared.'); return; }
       } else { status('Sharing was cancelled. Nothing was shared.'); return; }
     }
     const verdict = R.judgeTrack(got.getVideoTracks()[0]);
@@ -207,7 +215,7 @@
     S.stream = got;
     if (verdict.verdict === 'warn' || verdict.verdict === 'allow-note') shareNote(verdict.message, verdict.verdict);
     S.stream.getVideoTracks()[0].addEventListener('ended', stop);
-    $('share').classList.add('hidden'); $('stop').classList.remove('hidden'); $('stop').focus();
+    $('share').classList.add('hidden'); if ($('share-other')) $('share-other').classList.add('hidden'); $('stop').classList.remove('hidden'); $('stop').focus();
     preview.srcObject = S.stream;
     preview.play().catch(() => {});
     $('preview-box').classList.remove('hidden');
@@ -230,7 +238,7 @@
     preview.srcObject = null;
     $('preview-box').classList.add('hidden');
     for (const v of S.viewers.values()) { endCall(v); if (v.conn.open) v.conn.send({ type: 'bye' }); }
-    $('stop').classList.add('hidden'); $('share').classList.remove('hidden'); $('share').focus();
+    $('stop').classList.add('hidden'); $('share').classList.remove('hidden'); if ($('share-other')) $('share-other').classList.remove('hidden'); $('share').focus();
     status('Stopped. Nothing is being shared. Click "Share my screen" to start again.');
     sharingEvent(false);
   }
@@ -290,7 +298,8 @@
   window.addEventListener('resize', fit);
   if (typeof ResizeObserver === 'function') new ResizeObserver(fit).observe($('preview-stage'));
 
-  $('share').addEventListener('click', share);
+  $('share').addEventListener('click', (e) => share(e, false));
+  if ($('share-other')) $('share-other').addEventListener('click', (e) => share(e, true));
   $('stop').addEventListener('click', stop);
   window.addEventListener('pagehide', () => { if (peer) peer.destroy(); });
   start(0);

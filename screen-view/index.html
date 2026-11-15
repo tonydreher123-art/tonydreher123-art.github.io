@@ -19,7 +19,9 @@
 <div id="status" class="status" role="status" aria-live="polite">Getting a room code&hellip;</div>
 <div id="share-note" class="share-note hidden" role="alert"></div>
 <div id="ai-snap-notice" class="ai-notice hidden" role="status" aria-live="polite"></div>
-<button type="button" id="share" disabled>Share my screen</button>
+<button type="button" id="share" disabled aria-describedby="share-how">Share my screen</button>
+<button type="button" id="share-other" disabled aria-describedby="share-how">Share a different tab</button>
+<p id="share-how" class="small">&ldquo;Share my screen&rdquo; shares this Screen-View tab: Chrome asks &ldquo;Share this tab?&rdquo; and you press Share once. &ldquo;Share a different tab&rdquo; shows Chrome&rsquo;s list of your other tabs. Chrome always asks for that one click; no web page can skip it.</p>
 <button type="button" id="stop" class="hidden">Stop</button>
 <div id="watchers" class="status" role="status" aria-live="polite">Nobody is watching.</div>
 <h2 id="code-heading">Room code</h2>

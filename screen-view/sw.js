@@ -12,7 +12,9 @@
 // RC3 BUILD Nov 14 2026: adds ai-keys.js, ai-key-ui.js, reader/providers/transport.js; real Pro public key.
 // AI company requests (api.anthropic.com, api.openai.com, api.x.ai) are other origins: never cached.
 // Nov 15, 2026 (upload build): adds pictures.js and site-upload.js. api.github.com is another origin: never cached.
-const VERSION = 'sv-shell-rc3-2026-11-15-6';
+// Nov 15 2026 (-7, share-friction fix): every shell file is now fetched from the network first (revalidated, so a
+// new deploy shows up on the FIRST open, not the second), with the stored copy used only when offline or slow.
+const VERSION = 'sv-shell-rc3-2026-11-15-7';
 const SHELL = [
   'index.html', 'view.html', 'style.css', 'LICENSES.txt', 'a11y.js', 'ai-marks.js', 'annotate.js',
   'ai-key-ui.js', 'ai-keys.js', 'answer-view.js', 'ask-reader.js', 'ask.js', 'common.js', 'connector-link.js', 'ext-bridge.js',
@@ -55,23 +57,31 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
+const SLOW_MS = 6000; // if the network takes longer than this and a stored copy exists, use the stored copy
+
 async function fromNetworkThenCache(request, path) {
   const cache = await caches.open(VERSION);
+  // Pages (navigations) must be fetched as they are; other shell files are revalidated with the server
+  // (cache: 'no-cache' = ask GitHub "changed?", a tiny 304 if not) so a new deploy is used at once.
+  const net = (request.mode === 'navigate' ? fetch(request) : fetch(request.url, { cache: 'no-cache', credentials: 'same-origin' }))
+    .then(async (res) => {
+      // Refresh the stored copy of this shell file only (stored by path, never with ?query).
+      if (res && res.ok && res.type === 'basic') await cache.put(path, res.clone());
+      return res;
+    });
+  net.catch(() => {}); // a late failure after the stored copy was used is not an error
+  let timer = 0;
+  const slow = new Promise((resolve) => { timer = setTimeout(resolve, SLOW_MS, null); });
   try {
-    const res = await fetch(request);
-    // Refresh the stored copy of this shell page only (stored by path, never with ?query).
-    if (res && res.ok && res.type === 'basic') await cache.put(path, res.clone());
-    return res;
+    const first = await Promise.race([net, slow]);
+    if (first) return first;
+    const hit = await cache.match(path);
+    return hit || await net;
   } catch (e) {
     const hit = await cache.match(path);
     if (hit) return hit;
     throw e;
-  }
-}
-
-async function fromCacheThenNetwork(request, path) {
-  const hit = await (await caches.open(VERSION)).match(path);
-  return hit || fetch(request); // not stored: shell assets only change with a new VERSION
+  } finally { clearTimeout(timer); }
 }
 
 self.addEventListener('fetch', (event) => {
@@ -80,6 +90,5 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   const path = shellPath(url);
   if (!path) return; // not part of the app shell: browser handles it, nothing is cached
-  if (req.mode === 'navigate' || path.endsWith('.html')) event.respondWith(fromNetworkThenCache(req, path));
-  else event.respondWith(fromCacheThenNetwork(req, path));
+  event.respondWith(fromNetworkThenCache(req, path)); // Nov 15 2026: network first for every shell file
 });
