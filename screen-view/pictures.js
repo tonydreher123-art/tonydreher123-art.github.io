@@ -152,7 +152,9 @@
       P.items.push(it); added.push(it);
     }
     P.rejected = bad;
-    if (added.length && !selected()) { P.selectedId = added[0].id; setMode('picture'); }
+    // Nov 15 2026: while a tab is shared, the live screen stays the default; a new picture is only pre-picked.
+    const sharingNow = !!(window.SVSender && window.SVSender.isSharing && window.SVSender.isSharing());
+    if (added.length && !selected()) { P.selectedId = added[0].id; setMode(sharingNow ? 'screen' : 'picture'); }
     render();
     const parts = [];
     if (added.length) parts.push('Added ' + added.length + ' picture' + (added.length === 1 ? '' : 's') + '.' + (P.useForAnswer() ? ' "Get answer" will look at "' + selected().name + '" (no screen sharing needed).' : ''));
@@ -179,6 +181,13 @@
     $('pic-use-screen').addEventListener('change', () => { render(); say('"Get answer" will look at your shared screen.'); });
     $('pic-use-picture').addEventListener('change', () => { render(); const s = selected(); if (s) say('"Get answer" will look at "' + s.name + '" (no screen sharing needed).'); });
     setMode('screen');
+    // Nov 15 2026: prefer the live shared screen whenever sharing starts; when sharing stops and a picture is
+    // chosen, fall back to that picture. "Use for Get answer" still picks a picture on purpose while sharing.
+    window.addEventListener('sv:sharing', (e) => {
+      const on = !!(e && e.detail && e.detail.sharing);
+      if (on) { setMode('screen'); render(); say('"Get answer" will look at your shared screen.'); }
+      else if (selected()) { setMode('picture'); render(); say('Sharing stopped. "Get answer" will look at "' + selected().name + '".'); }
+    });
     P.ready = true;
   }
   P.safeName = safeName; P.sniff = sniff;
