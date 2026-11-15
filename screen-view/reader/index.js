@@ -7,7 +7,11 @@ export { createMockProvider } from './providers/mock.js';
 export { createClaudeProvider } from './providers/claude.js';
 export { createOpenAIProvider } from './providers/openai.js';
 export { createGrokProvider } from './providers/grok.js';
-export { LIVE_CALLS_ENABLED } from './providers/adapter-base.js';
+export { LIVE_CALLS_ENABLED, companyError } from './providers/adapter-base.js';
+export { directTransport, extensionTransport, allowedUrl, COMPANY_HOSTS } from './providers/transport.js';
+export { claudeSpec } from './providers/claude.js';
+export { openaiSpec } from './providers/openai.js';
+export { grokSpec } from './providers/grok.js';
 
 import { createMockProvider } from './providers/mock.js';
 import { createClaudeProvider } from './providers/claude.js';

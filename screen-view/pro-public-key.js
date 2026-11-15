@@ -1,11 +1,7 @@
 // PUBLIC half of the Screen-View Pro signing key (ECDSA P-256), as a JWK.
-//
-// PLACEHOLDER: no real key is installed in this private packaging build.
-// Tony makes the real key pair on his own computer (see MORNING-APPROVALS.md); only the
-// PUBLIC half ever goes here. The secret half must never be in the app or on this box.
-//
-// While this is null, Pro keys cannot be checked and Pro stays locked. The test runner and
-// tools/demo-pro.mjs serve a different copy of THIS FILE ONLY, holding a THROWAWAY TEST
-// public key made in memory for that run (its private half is thrown away afterwards).
+// REAL KEY, made Nov 14, 2026 about 10:11 PM MST (America/Denver) with Tony's yes (approval items 60 and 95).
+// Only the PUBLIC half is here. It can CHECK Pro keys but can never MAKE them.
+// The private half lives only on the build computer (never in the app, the repo, a zip, or a report).
+// Pro keys are made with tools/make-license.mjs.
 'use strict';
-window.SV_PRO_PUBLIC_KEY_JWK = null;
+window.SV_PRO_PUBLIC_KEY_JWK = {"kty":"EC","crv":"P-256","x":"1maAuIDX4IDSbU42Y6jfKmRrxYzwgjlUE7ZiSYkTbqg","y":"35CgFEfKhLPtK-tkFuxSCbBfoC0qEPCZtXf1100qFGY"};
