@@ -1,6 +1,7 @@
 // Shared request/reply shape for "chat completions" style APIs (OpenAI and xAI Grok use it).
-export const chatBody = ({ model, dataUrl, system, user }) => ({
-  model, max_tokens: 800,
+// tokenField: OpenAI's newer models want "max_completion_tokens"; xAI accepts "max_tokens".
+export const chatBody = ({ model, dataUrl, system, user }, tokenField = 'max_tokens', limit = 2000) => ({
+  model, [tokenField]: limit,
   messages: [
     { role: 'system', content: system },
     { role: 'user', content: [
