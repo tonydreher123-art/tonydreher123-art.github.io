@@ -33,7 +33,9 @@ async function ask() {
   // shared screen. Then no screen sharing is needed, and marks are not drawn on the shared-screen preview or sent
   // to phones (they belong to the chosen picture, not the screen). Same practice/live rules and cost wording.
   const PIC = window.SVPictures;
-  const usePic = !!(PIC && PIC.useForAnswer && PIC.useForAnswer());
+  // Nov 15 2026: a live shared screen always wins; an uploaded picture is used only when nothing is shared.
+  const sharingLive = !!(window.SVSender && window.SVSender.isSharing && window.SVSender.isSharing());
+  const usePic = !sharingLive && !!(PIC && PIC.useForAnswer && PIC.useForAnswer());
   if (!usePic && !(window.SVSender && window.SVSender.isSharing())) { note('Share your screen first, or choose a picture in "Upload your pictures", so the helper has a picture to look at.'); return; }
   const pick = choose();
   const who = pick.live ? pick.label : 'the practice AI helper';
