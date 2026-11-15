@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "Screen-View",
+  "short_name": "Screen-View",
+  "description": "Show your computer screen on your phone, point at things with arrows and circles, and send text to copy. Video goes straight between your own devices.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "icons/icon-48.png", "sizes": "48x48", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "screenshots/computer-1280x800.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Sharing page on a computer" },
+    { "src": "screenshots/phone-540x1170.png", "sizes": "540x1170", "type": "image/png", "form_factor": "narrow", "label": "Phone viewer" }
+  ],
+  "shortcuts": [
+    { "name": "Watch on this phone", "short_name": "Watch", "url": "./view.html", "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png" }] }
+  ]
+}
