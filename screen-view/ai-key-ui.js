@@ -68,9 +68,14 @@ async function test() {
   const prov = MAKE[p]({ apiKey: L.backend.getKey(p), model: s.model || SPECS[p].defaultModel, transport: transportFor(L.backend) });
   try {
     const r = await prov.testKey();
-    L.lastTest = { ok: true, provider: p, count: r.models.length, modelAvailable: r.modelAvailable };
+    L.lastTest = { ok: true, provider: p, count: r.models.length, modelAvailable: r.modelAvailable, imageInputAvailable: r.imageInputAvailable };
+    const imageNote = p === 'grok'
+      ? (r.imageInputAvailable === true ? ' Screenshot/image input is confirmed for this model.'
+        : r.imageInputAvailable === false ? ' WARNING: this model does not list image input, so it cannot be used for screenshot reading.'
+        : ' The model list did not report image-input capability.')
+      : '';
     say(`The key works. ${K.PROVIDERS[p].label} lists ${r.models.length} model${r.models.length === 1 ? '' : 's'} for it.` +
-      (r.modelAvailable === false ? ` The model "${r.defaultModel}" is not in that list; type one from your account in the AI model box and press Save key again.` : ` The model "${r.defaultModel}" is ready.`));
+      (r.modelAvailable === false ? ` The model "${r.defaultModel}" is not in that list; type one from your account in the AI model box and press Save key again.` : ` The model "${r.defaultModel}" is ready.`) + imageNote);
   } catch (e) {
     L.lastTest = { ok: false, provider: p, code: e.code };
     say('Key test failed: ' + (e && e.message || e));
