@@ -82,8 +82,20 @@ export function createAdapter(spec, { apiKey, model, transport } = {}) {
     async testKey() {
       guard();
       const json = await send({ method: 'GET', url: spec.modelsUrl });
-      const ids = (json && Array.isArray(json.data) ? json.data : []).map((m) => m && m.id).filter(Boolean).map(String);
-      return { ok: true, company: spec.company, models: ids, defaultModel: chosenModel, modelAvailable: ids.length ? ids.includes(chosenModel) : null };
+      // xAI's /v1/language-models returns { models:[...] } with input_modalities;
+      // OpenAI/Anthropic model-list endpoints use { data:[...] }. Accept both shapes.
+      const entries = json && Array.isArray(json.data) ? json.data
+        : json && Array.isArray(json.models) ? json.models : [];
+      const ids = entries.map((m) => m && m.id).filter(Boolean).map(String);
+      const selected = entries.find((m) => m && (m.id === chosenModel ||
+        (Array.isArray(m.aliases) && m.aliases.includes(chosenModel))));
+      const imageInputAvailable = selected && Array.isArray(selected.input_modalities)
+        ? selected.input_modalities.includes('image') : null;
+      return {
+        ok: true, company: spec.company, models: ids, defaultModel: chosenModel,
+        modelAvailable: ids.length ? (ids.includes(chosenModel) || !!selected) : null,
+        imageInputAvailable,
+      };
     },
   };
 }
